@@ -7,7 +7,7 @@ namespace common {
 
 template<typename This>
 concept DataView = requires(This& r) {
-  { r.data() } -> std::same_as<void*>;
+  { r.data() } -> std::convertible_to<void*>;
   { r.size() } -> std::same_as<std::size_t>;
 };  // concept DataView
 

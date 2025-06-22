@@ -3,29 +3,49 @@
 #include <filesystem>
 #include <memory>
 #include <iomanip>
+#include <format>
 
 #include <platform/mapped_file.h>
 #include <unity/file/bundle.h>
+#include <unity/file/asset.h>
 
-void do_one(const std::filesystem::path& path) {
+void black_box(auto& v) { asm volatile("" : : "r,m"(v) : "memory"); }
+
+bool do_one(const std::filesystem::path& path) {
   auto map = platform::MappedFile::Open(path, common::RwxRights::Read);
   if (!map) {
-    std::cerr << "Couldn't open \"" << path << "\": " << map.error().message() << std::endl;
-    return;
+    std::cerr << std::format("Couldn't open \"{}\": ", path.string(), map.error().message()) << std::endl;
+    return false;
   }
 
-  auto bundle = unity::file::Bundle<platform::MappedFile&>::Read(*map);
+  auto bundle = unity::file::Bundle::Read<platform::MappedFile&>(*map);
   if (!bundle) {
-    std::cerr << "Couldn't read bundle \"" << path << "\": " << bundle.error() << std::endl;
-    return;
+    std::cerr << std::format("Couldn't read bundle \"{}\": ", path.string(), bundle.error()) << std::endl;
+    return false;
   }
 
   auto asset = &bundle->first_file();
   for (std::uint32_t i = 0; i < bundle->file_count; ++i) {
     auto mem = std::make_unique<char[]>(asset->size);
-    auto result = bundle->UnpackData(asset->offset, {mem.get(), asset->size});
+    auto unpack_err = bundle->UnpackData(asset->offset, {mem.get(), asset->size});
+    if (unpack_err) {
+      std::cerr << std::format("Couldn't unpack asset \"{}\"[{}]: ", path.string(), i, bundle.error()) << std::endl;
+      return false;
+    }
+
+    std::span<char> mem_span(mem.get(), asset->size);
+    if (unity::file::Asset::Detect(mem_span)) {
+      auto asset_data = unity::file::Asset::Read(mem_span);
+      if (!asset_data) {
+        std::cerr << std::format("Couldn't read asset \"{}\"[{}]: ", path.string(), i, asset_data.error()) << std::endl;
+        return false;
+      }
+      black_box(*asset_data);
+    }
+
     asset = &asset->next();
   }
+  return true;
 }
 
 int main() {

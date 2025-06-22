@@ -10,7 +10,7 @@ Unusable yet.
 - [X] Parsing bundles
 - [X] Extracting assets from bundles
   - [X] Handling new CN encoding
-- [ ] Parsing assets
+- [X] Parsing assets
 - [ ] Extracting content from assets
 - [ ] Nice viewer with version difference
 
