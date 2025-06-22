@@ -14,13 +14,13 @@ void black_box(auto& v) { asm volatile("" : : "r,m"(v) : "memory"); }
 bool do_one(const std::filesystem::path& path) {
   auto map = platform::MappedFile::Open(path, common::RwxRights::Read);
   if (!map) {
-    std::cerr << std::format("Couldn't open \"{}\": ", path.string(), map.error().message()) << std::endl;
+    std::cerr << std::format("Couldn't open \"{}\": {}", path.string(), map.error().message()) << std::endl;
     return false;
   }
 
   auto bundle = unity::file::Bundle::Read<platform::MappedFile&>(*map);
   if (!bundle) {
-    std::cerr << std::format("Couldn't read bundle \"{}\": ", path.string(), bundle.error()) << std::endl;
+    std::cerr << std::format("Couldn't read bundle \"{}\": {}", path.string(), bundle.error()) << std::endl;
     return false;
   }
 
@@ -29,7 +29,7 @@ bool do_one(const std::filesystem::path& path) {
     auto mem = std::make_unique<char[]>(asset->size);
     auto unpack_err = bundle->UnpackData(asset->offset, {mem.get(), asset->size});
     if (unpack_err) {
-      std::cerr << std::format("Couldn't unpack asset \"{}\"[{}]: ", path.string(), i, bundle.error()) << std::endl;
+      std::cerr << std::format("Couldn't unpack asset \"{}\"[{}]: {}", path.string(), i, bundle.error()) << std::endl;
       return false;
     }
 
@@ -37,7 +37,7 @@ bool do_one(const std::filesystem::path& path) {
     if (unity::file::Asset::Detect(mem_span)) {
       auto asset_data = unity::file::Asset::Read(mem_span);
       if (!asset_data) {
-        std::cerr << std::format("Couldn't read asset \"{}\"[{}]: ", path.string(), i, asset_data.error()) << std::endl;
+        std::cerr << std::format("Couldn't read asset \"{}\"[{}]: {}", path.string(), i, asset_data.error()) << std::endl;
         return false;
       }
       black_box(*asset_data);
