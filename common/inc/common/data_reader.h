@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cassert>
 #include <concepts>
+#include <bit>
 
 #include <common/data_view.h>
 #include <common/math.h>
@@ -15,7 +16,7 @@ struct DataReader {
   std::size_t position = 0;
   
   // Returns pointer to the current location.
-  void* current();
+  const void* current();
 
   // Skips data to make 'position' a multiple
   // of 'to'; 'to' must be a power of 2.
@@ -41,8 +42,8 @@ struct DataReader {
 };  // struct DataReader
 
 template<DataView From>
-void* DataReader<From>::current() {
-  return reinterpret_cast<char*>(from.data()) + position;
+const void* DataReader<From>::current() {
+  return reinterpret_cast<const char*>(from.data()) + position;
 }
 
 template<DataView From>
@@ -57,7 +58,7 @@ void DataReader<From>::AlignTo(std::size_t to) {
 template<DataView From>
 template<typename T>
 T& DataReader<From>::Read() {
-  auto ptr = reinterpret_cast<T*>(current());
+  auto ptr = std::bit_cast<T*, const void*>(current());
   position += sizeof(T);
   return *ptr;
 }
@@ -65,7 +66,7 @@ T& DataReader<From>::Read() {
 template<DataView From>
 template<typename T>
 T* DataReader<From>::ReadNullTerm(std::size_t& size) {
-  auto ptr = reinterpret_cast<T*>(current());
+  auto ptr = std::bit_cast<T*, const void*>(current());
   size = 0;
   while (ptr[size] != 0) ++size;
   ++size;  // also consume terminator
@@ -83,7 +84,7 @@ T* DataReader<From>::ReadNullTerm() {
 template<DataView From>
 template<typename T>
 T* DataReader<From>::ReadArray(std::size_t size) {
-  auto ptr = reinterpret_cast<T*>(current());
+  auto ptr = std::bit_cast<T*, const void*>(current());
   position += sizeof(T) * size;
   return ptr;
 }

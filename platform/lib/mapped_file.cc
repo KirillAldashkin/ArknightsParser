@@ -30,8 +30,8 @@ std::expected<MappedFile, std::error_code> MappedFile::Open(const std::filesyste
   if (mode << common::RwxRights::Read) file_mode |= GENERIC_READ;
   if (mode << common::RwxRights::Write) file_mode |= GENERIC_WRITE;
 
-  auto file = CreateFileW(path.c_str(), file_mode, 0, NULL, OPEN_EXISTING, 
-                          FILE_ATTRIBUTE_NORMAL, NULL);
+  auto file = CreateFileW(path.c_str(), file_mode, FILE_SHARE_READ, NULL, 
+                          OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
   if (file == INVALID_HANDLE_VALUE) return OsError();
 
