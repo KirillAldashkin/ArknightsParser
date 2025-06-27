@@ -16,7 +16,7 @@
 
 #include <unity/flags.h>
 #include <unity/misc.h>
-#include <unity/typing/type.h>
+#include <unity/type.h>
 
 namespace unity {
 
@@ -71,7 +71,7 @@ class Asset {
   TargetPlatform platform;
   bool enable_typetree;
   std::uint32_t type_count;
-  std::unique_ptr<typing::Type[]> types;
+  std::unique_ptr<Type[]> types;
   std::uint32_t big_id_enabled;
   std::uint32_t object_count;
   std::unique_ptr<Object[]> objects;
@@ -80,7 +80,7 @@ class Asset {
   std::uint32_t externals_count;
   std::unique_ptr<FileIdentifier[]> externals;
   std::uint32_t reftype_count;
-  std::unique_ptr<typing::Type[]> reftypes;
+  std::unique_ptr<Type[]> reftypes;
   std::uint8_t* data;
 
   std::span<const char> GetObject(std::uint32_t index) const;
@@ -176,9 +176,9 @@ std::expected<Asset, std::string> Asset::Read(Source&& from) {
   }
 
   data.type_count = reader.template Read<platform::u32re>().get(data.header.endian);
-  data.types = std::make_unique<typing::Type[]>(data.type_count);
+  data.types = std::make_unique<Type[]>(data.type_count);
   for (std::uint32_t i = 0; i < data.type_count; ++i) 
-    data.types[i] = typing::Type::Read(reader, data.header.endian, data.header.version, false, data.enable_typetree);
+    data.types[i] = Type::Read(reader, data.header.endian, data.header.version, false, data.enable_typetree);
   
   if (data.header.version >= 7 && data.header.version < 14) {
     data.big_id_enabled = reader.template Read<platform::u32re>().get(data.header.endian);
@@ -223,9 +223,9 @@ std::expected<Asset, std::string> Asset::Read(Source&& from) {
     data.reftype_count = 0;
   } else {
     data.reftype_count = reader.template Read<platform::u32re>().get(data.header.endian);
-    data.reftypes = std::make_unique<typing::Type[]>(data.type_count);
+    data.reftypes = std::make_unique<Type[]>(data.type_count);
     for (std::uint32_t i = 0; i < data.reftype_count; ++i) 
-      data.reftypes[i] = typing::Type::Read(reader, data.header.endian, data.header.version, true, data.enable_typetree);
+      data.reftypes[i] = Type::Read(reader, data.header.endian, data.header.version, true, data.enable_typetree);
   }
 
   if (data.header.version >= 5)

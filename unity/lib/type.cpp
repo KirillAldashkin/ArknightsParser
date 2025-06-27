@@ -1,8 +1,6 @@
-#include <unity/typing/type.h>
+#include <unity/type.h>
 
 namespace unity {
-
-namespace typing {
 
 static const auto kCommonString = 
   "AABB\0"
@@ -122,7 +120,5 @@ const char* TypeTree::GetString(std::uint32_t offset) const {
     return strings + offset;
   }
 }
-
-}  // namespace typing
 
 }  // namespace unity

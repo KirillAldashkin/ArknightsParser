@@ -11,8 +11,6 @@
 
 namespace unity {
 
-namespace typing {
-
 struct TypeTree {
   struct Node {
     std::uint16_t version;
@@ -32,6 +30,8 @@ struct TypeTree {
         std::uint32_t name_offset;
       };
     };
+
+    bool aligned() const;
   };  // struct Node
 
   std::uint32_t node_count;
@@ -147,6 +147,8 @@ Type Type::Read(common::DataReader<Source>& from,
   return ret;
 }
 
-}  // namespace typing
+inline bool TypeTree::Node::aligned() const {
+  return meta_flags & 0x4000;
+}
 
 }  // namespace unity
